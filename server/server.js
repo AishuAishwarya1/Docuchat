@@ -14,6 +14,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/documents', require('./routes/documents'));
 
 app.use(require('./middleware/errorHandler'));
 
