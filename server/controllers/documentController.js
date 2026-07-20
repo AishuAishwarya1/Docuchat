@@ -1,8 +1,8 @@
 const fs = require('fs');
 const Document = require('../models/Document');
 const extractText = require('../utils/extractText');
+const { chunkText } = require('../utils/chunkText');
 
-// @route POST /api/documents/upload
 const uploadDocument = async (req, res, next) => {
   try {
     if (!req.file) {
@@ -16,7 +16,8 @@ const uploadDocument = async (req, res, next) => {
     try {
       extractedText = await extractText(filePath, fileType);
     } catch (extractErr) {
-      fs.unlinkSync(filePath); // clean up the file if extraction fails
+      console.error('EXTRACTION ERROR:', extractErr);
+      fs.unlinkSync(filePath);
       return res.status(400).json({ message: 'Could not extract text from this file' });
     }
 
@@ -25,33 +26,36 @@ const uploadDocument = async (req, res, next) => {
       return res.status(400).json({ message: 'No readable text found in this file' });
     }
 
+    // chunk the extracted text
+    const rawChunks = chunkText(extractedText, 500, 50);
+    const chunks = rawChunks.map((text, index) => ({ text, chunkIndex: index }));
+
     const document = await Document.create({
       user: req.user._id,
       originalName: req.file.originalname,
       fileType,
       extractedText,
-      status: 'processing', // will become 'ready' after chunking/embedding in Week 2
+      chunks,
+      status: 'chunked', // embeddings come next (Day 7-8)
     });
 
-    // delete the temp file now that text is safely stored in MongoDB
     fs.unlinkSync(filePath);
 
     res.status(201).json({
       _id: document._id,
       originalName: document.originalName,
       status: document.status,
-      textLength: extractedText.length,
+      chunkCount: chunks.length,
     });
   } catch (err) {
     next(err);
   }
 };
 
-// @route GET /api/documents
 const getDocuments = async (req, res, next) => {
   try {
     const documents = await Document.find({ user: req.user._id })
-      .select('-extractedText') // don't send full text in the list view
+      .select('-extractedText -chunks.text')
       .sort({ createdAt: -1 });
 
     res.status(200).json(documents);

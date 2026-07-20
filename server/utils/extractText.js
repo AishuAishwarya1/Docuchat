@@ -1,5 +1,5 @@
 const fs = require('fs');
-const pdfParse = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 const mammoth = require('mammoth');
 const path = require('path');
 
@@ -8,8 +8,9 @@ const extractText = async (filePath, fileType) => {
 
   if (ext === '.pdf') {
     const dataBuffer = fs.readFileSync(filePath);
-    const data = await pdfParse(dataBuffer);
-    return data.text;
+    const parser = new PDFParse({ data: dataBuffer });
+    const result = await parser.getText();
+    return result.text;
   }
 
   if (ext === '.docx') {
