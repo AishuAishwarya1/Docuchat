@@ -23,6 +23,7 @@ const documentSchema = new mongoose.Schema(
       {
         text: { type: String, required: true },
         chunkIndex: { type: Number, required: true },
+        embedding: { type: [Number], default: [] },
       },
     ],
     status: {

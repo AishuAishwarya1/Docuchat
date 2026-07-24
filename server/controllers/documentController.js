@@ -2,6 +2,7 @@ const fs = require('fs');
 const Document = require('../models/Document');
 const extractText = require('../utils/extractText');
 const { chunkText } = require('../utils/chunkText');
+const embedDocument = require('../utils/embedDocument');
 
 const uploadDocument = async (req, res, next) => {
   try {
@@ -16,7 +17,6 @@ const uploadDocument = async (req, res, next) => {
     try {
       extractedText = await extractText(filePath, fileType);
     } catch (extractErr) {
-      console.error('EXTRACTION ERROR:', extractErr);
       fs.unlinkSync(filePath);
       return res.status(400).json({ message: 'Could not extract text from this file' });
     }
@@ -26,7 +26,6 @@ const uploadDocument = async (req, res, next) => {
       return res.status(400).json({ message: 'No readable text found in this file' });
     }
 
-    // chunk the extracted text
     const rawChunks = chunkText(extractedText, 500, 50);
     const chunks = rawChunks.map((text, index) => ({ text, chunkIndex: index }));
 
@@ -36,16 +35,23 @@ const uploadDocument = async (req, res, next) => {
       fileType,
       extractedText,
       chunks,
-      status: 'chunked', // embeddings come next (Day 7-8)
+      status: 'chunked',
     });
 
     fs.unlinkSync(filePath);
 
+    // respond to the user immediately after chunking...
     res.status(201).json({
       _id: document._id,
       originalName: document.originalName,
-      status: document.status,
+      status: 'chunked',
       chunkCount: chunks.length,
+      message: 'Document uploaded. Embedding in progress.',
+    });
+
+    // ...then embed in the background, after the response is sent
+    embedDocument(document._id).catch((err) => {
+      console.error('Embedding failed for document', document._id, err.message);
     });
   } catch (err) {
     next(err);
@@ -55,7 +61,7 @@ const uploadDocument = async (req, res, next) => {
 const getDocuments = async (req, res, next) => {
   try {
     const documents = await Document.find({ user: req.user._id })
-      .select('-extractedText -chunks.text')
+      .select('-extractedText -chunks.text -chunks.embedding')
       .sort({ createdAt: -1 });
 
     res.status(200).json(documents);
