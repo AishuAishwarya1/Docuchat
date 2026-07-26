@@ -19,13 +19,6 @@ const documentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    chunks: [
-      {
-        text: { type: String, required: true },
-        chunkIndex: { type: Number, required: true },
-        embedding: { type: [Number], default: [] },
-      },
-    ],
     status: {
       type: String,
       enum: ['processing', 'chunked', 'embedding', 'ready', 'failed'],

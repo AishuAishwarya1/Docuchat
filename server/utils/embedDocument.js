@@ -1,9 +1,7 @@
 const Document = require('../models/Document');
+const Chunk = require('../models/Chunk');
 const { generateEmbedding } = require('./generateEmbedding');
 
-/**
- * Generates embeddings for every chunk in a document and saves them.
- */
 async function embedDocument(documentId) {
   const document = await Document.findById(documentId);
   if (!document) throw new Error('Document not found');
@@ -11,8 +9,11 @@ async function embedDocument(documentId) {
   document.status = 'embedding';
   await document.save();
 
-  for (const chunk of document.chunks) {
+  const chunks = await Chunk.find({ document: documentId });
+
+  for (const chunk of chunks) {
     chunk.embedding = await generateEmbedding(chunk.text);
+    await chunk.save();
   }
 
   document.status = 'ready';

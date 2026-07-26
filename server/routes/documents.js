@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../config/multer');
 const protect = require('../middleware/authMiddleware');
-const { uploadDocument, getDocuments } = require('../controllers/documentController');
+const { uploadDocument, getDocuments, deleteDocument } = require('../controllers/documentController');
 
 router.post('/upload', protect, upload.single('file'), uploadDocument);
 router.get('/', protect, getDocuments);
@@ -18,5 +18,6 @@ router.get('/:id', protect, async (req, res, next) => {
     next(err);
   }
 });
+router.delete('/:id', protect, deleteDocument);
 
 module.exports = router;

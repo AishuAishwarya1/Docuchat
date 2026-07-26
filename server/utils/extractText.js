@@ -25,4 +25,12 @@ const extractText = async (filePath, fileType) => {
   throw new Error('Unsupported file type for extraction');
 };
 
-module.exports = extractText;
+function cleanExtractedText(text) {
+  return text
+    .replace(/--\s*\d+\s*of\s*\d+\s*--/gi, '') // remove "-- 1 of 4 --" style page markers
+    .replace(/[ \t]+/g, ' ')                    // collapse extra spaces/tabs
+    .replace(/\n{3,}/g, '\n\n')                 // collapse excessive blank lines
+    .trim();
+}
+
+module.exports = { extractText, cleanExtractedText };
