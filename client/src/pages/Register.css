@@ -1,0 +1,491 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+/* ---------------------------------------------------
+   Design tokens
+--------------------------------------------------- */
+.register-page {
+  --paper: #EDE8DA;
+  --paper-deep: #E2DBC7;
+  --paper-card: #F7F4EB;
+  --ink: #1B2233;
+  --ink-soft: #2E3A52;
+  --highlight: #E8C547;
+  --highlight-soft: #F3DE8A;
+  --redline: #C1443C;
+  --text-muted: #756F5E;
+  --text-on-paper: #1B2233;
+  --border: rgba(27, 34, 51, 0.12);
+  --danger: #C1443C;
+  --danger-bg: rgba(193, 68, 60, 0.08);
+
+  --font-display: 'Source Serif 4', 'Georgia', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  background: var(--ink);
+  font-family: var(--font-body);
+  color: var(--text-on-paper);
+}
+
+.register-page,
+.register-page *,
+.register-page *::before,
+.register-page *::after {
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------
+   Left: product panel
+--------------------------------------------------- */
+.register-branding {
+  position: relative;
+  flex: 1 1 54%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(16px, 3vh, 40px);
+  padding: clamp(28px, 5vh, 56px) 64px clamp(24px, 4vh, 48px);
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(232, 197, 71, 0.16), transparent 42%),
+    var(--paper);
+  color: var(--text-on-paper);
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.brand-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--ink);
+  color: var(--highlight);
+}
+
+.brand-glyph svg {
+  width: 15px;
+  height: 15px;
+}
+
+.brand-mark--mobile {
+  display: none;
+  margin-bottom: 22px;
+}
+
+.branding-copy {
+  max-width: 460px;
+  z-index: 1;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 16px;
+}
+
+.branding-copy h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(30px, 3.3vw, 42px);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  margin: 0 0 18px;
+  color: var(--ink);
+}
+
+.branding-copy p {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ---------------------------------------------------
+   Signature element: document + highlighting + citation
+--------------------------------------------------- */
+.doc-scene {
+  position: relative;
+  flex: 1;
+  min-height: clamp(150px, 22vh, 220px);
+  z-index: 1;
+}
+
+.doc-page {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300px;
+  padding: 20px 22px 24px;
+  background: var(--paper-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 18px 40px rgba(27, 34, 51, 0.14);
+  transform: rotate(-2.5deg);
+}
+
+.doc-page-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.doc-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.doc-filename {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 4px;
+  letter-spacing: 0.02em;
+}
+
+.doc-line {
+  height: 7px;
+  border-radius: 4px;
+  background: var(--paper-deep);
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.doc-line--hl {
+  background: var(--highlight-soft);
+}
+
+.doc-line--hl::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--highlight);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: sweep-highlight 0.5s ease forwards;
+}
+
+.doc-line--hl:nth-of-type(3)::after {
+  animation-delay: 0.9s;
+}
+
+.doc-line--hl:nth-of-type(6)::after {
+  animation-delay: 1.4s;
+}
+
+@keyframes sweep-highlight {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.annotation-card {
+  position: absolute;
+  right: 4%;
+  bottom: -6%;
+  width: 230px;
+  padding: 16px 18px;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 10px;
+  box-shadow: 0 20px 44px rgba(27, 34, 51, 0.28);
+  transform: rotate(2deg);
+  opacity: 0;
+  animation: rise-in 0.6s ease forwards;
+  animation-delay: 1.7s;
+}
+
+.annotation-mark {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--highlight);
+  padding: 3px 8px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+.annotation-card p {
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 10px;
+  color: var(--paper);
+}
+
+.annotation-source {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(237, 232, 218, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doc-line--hl::after,
+  .annotation-card {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+  .annotation-card {
+    transform: rotate(2deg);
+  }
+}
+
+/* ---------------------------------------------------
+   Right: form panel
+--------------------------------------------------- */
+.register-form-panel {
+  flex: 1 1 46%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(20px, 5vh, 40px) 24px;
+  overflow-y: auto;
+  background: var(--ink);
+}
+
+.register-card {
+  width: 100%;
+  max-width: 380px;
+  color: var(--paper);
+}
+
+.register-form-panel .brand-mark {
+  color: var(--paper);
+}
+
+.register-form-panel .brand-glyph {
+  background: var(--highlight);
+  color: var(--ink);
+}
+
+.register-card-header {
+  margin-bottom: 32px;
+}
+
+.register-card-header h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 30px;
+  margin: 0 0 6px;
+  color: var(--paper);
+}
+
+.subtitle {
+  margin: 0;
+  color: rgba(237, 232, 218, 0.6);
+  font-size: 14px;
+}
+
+/* Fields */
+.field {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.field-label {
+  display: block;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(237, 232, 218, 0.55);
+  margin-bottom: 8px;
+}
+
+.field-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--ink-soft);
+  border: 1px solid rgba(237, 232, 218, 0.12);
+  border-radius: 10px;
+  padding: 0 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field-control:focus-within {
+  border-color: var(--highlight);
+  box-shadow: 0 0 0 3px rgba(232, 197, 71, 0.18);
+}
+
+.field-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: rgba(237, 232, 218, 0.5);
+}
+
+.field-control input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 13px 0;
+}
+
+.field-control input::placeholder {
+  color: rgba(237, 232, 218, 0.35);
+}
+
+.ghost-toggle {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: rgba(237, 232, 218, 0.5);
+  display: flex;
+}
+
+.ghost-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ghost-toggle:hover {
+  color: var(--paper);
+}
+
+/* Error */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(193, 68, 60, 0.14);
+  color: #E8938C;
+  border: 1px solid rgba(193, 68, 60, 0.3);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.error-banner svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Submit */
+.submit-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--highlight);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.15s ease, opacity 0.15s ease;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--highlight-soft);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.submit-btn:focus-visible,
+.field-control input:focus-visible,
+.ghost-toggle:focus-visible,
+.switch-line a:focus-visible {
+  outline: 2px solid var(--highlight);
+  outline-offset: 2px;
+}
+
+.spinner {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid rgba(27, 34, 51, 0.3);
+  border-top-color: var(--ink);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.switch-line {
+  margin: 22px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(237, 232, 218, 0.55);
+}
+
+.switch-line a {
+  color: var(--highlight);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.switch-line a:hover {
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------
+   Responsive
+--------------------------------------------------- */
+@media (max-width: 900px) {
+  .register-branding {
+    display: none;
+  }
+
+  .brand-mark--mobile {
+    display: inline-flex;
+  }
+
+  .register-form-panel {
+    flex: 1 1 100%;
+    padding: 32px 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .register-card-header h2 {
+    font-size: 24px;
+  }
+}
