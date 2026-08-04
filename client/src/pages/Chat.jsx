@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { uploadDocument, getDocuments, getDocumentStatus, deleteDocument } from '../services/documentService';
-import { sendMessage, getChats, getChatById } from '../services/chatService';
+import { sendMessage, getChats, getChatById, deleteChat } from '../services/chatService';
 import './Chat.css';
 
 export default function Chat() {
@@ -15,10 +15,11 @@ export default function Chat() {
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
-
   useEffect(() => {
     loadDocuments();
     loadChats();
@@ -53,24 +54,6 @@ export default function Chat() {
     setChats(chatList);
   };
 
-  const handleFileSelect = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setUploading(true);
-    setUploadProgress(0);
-    try {
-      await uploadDocument(file, setUploadProgress);
-      await loadDocuments();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Upload failed');
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-      e.target.value = '';
-    }
-  };
-
   const handleDeleteDocument = async (id) => {
     if (!confirm('Delete this document and its data?')) return;
     await deleteDocument(id);
@@ -81,11 +64,17 @@ export default function Chat() {
     const chat = await getChatById(id);
     setActiveChatId(chat._id);
     setMessages(chat.messages);
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      setSidebarOpen(false);
+    }
   };
 
   const handleNewChat = () => {
     setActiveChatId(null);
     setMessages([]);
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      setSidebarOpen(false);
+    }
   };
 
   const handleSend = async (e) => {
@@ -115,12 +104,46 @@ export default function Chat() {
     }
   };
 
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadProgress(0);
+    setUploadError('');
+    try {
+      await uploadDocument(file, setUploadProgress);
+      await loadDocuments();
+    } catch (err) {
+      setUploadError(err.response?.data?.message || 'Upload failed. Try again.');
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteChat = async (id, e) => {
+    e.stopPropagation(); // don't trigger handleSelectChat when clicking delete
+    if (!confirm('Delete this conversation?')) return;
+
+    await deleteChat(id);
+    await loadChats();
+
+    if (id === activeChatId) {
+      handleNewChat(); // clear the panel if you deleted the one you're viewing
+    }
+  };
+
   const readyDocs = documents.filter((d) => d.status === 'ready');
 
   return (
     <div className="chat-page">
+      {/* Overlay shown on mobile when sidebar is open */}
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${sidebarOpen ? '' : 'sidebar--closed'}`}>
         <div className="sidebar-header">
           <div className="brand-mark">
             <span className="brand-glyph" aria-hidden="true">
@@ -131,6 +154,15 @@ export default function Chat() {
             </span>
             Docuchat
           </div>
+          <button
+            className="sidebar-close-btn"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+          >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </button>
         </div>
 
         <button className="new-chat-btn" onClick={handleNewChat}>
@@ -145,6 +177,7 @@ export default function Chat() {
             <span>Documents</span>
             <button className="upload-btn" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
               {uploading ? `${uploadProgress}%` : '+ Upload'}
+              {uploadError && <p className="upload-error">{uploadError}</p>}
             </button>
             <input
               type="file"
@@ -181,13 +214,19 @@ export default function Chat() {
           </div>
           <div className="chat-list">
             {chats.map((c) => (
-              <button
+              <div
                 key={c._id}
-                className={`chat-list-item ${c._id === activeChatId ? 'active' : ''}`}
-                onClick={() => handleSelectChat(c._id)}
+                className={`chat-list-item-wrap ${c._id === activeChatId ? 'active' : ''}`}
               >
-                {c.title}
-              </button>
+                <button className="chat-list-item" onClick={() => handleSelectChat(c._id)}>
+                  {c.title}
+                </button>
+                <button className="chat-delete-btn" onClick={(e) => handleDeleteChat(c._id, e)} aria-label="Delete chat">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -200,6 +239,20 @@ export default function Chat() {
 
       {/* Main chat panel */}
       <main className="chat-main">
+        {!sidebarOpen && (
+          <div className="chat-topbar">
+            <button
+              className="sidebar-open-btn"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open sidebar"
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        )}
+
         {messages.length === 0 && (
           <div className="chat-empty-state">
             <div className="empty-glyph" aria-hidden="true">

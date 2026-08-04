@@ -9,15 +9,19 @@ async function embedDocument(documentId) {
   document.status = 'embedding';
   await document.save();
 
-  const chunks = await Chunk.find({ document: documentId });
-
-  for (const chunk of chunks) {
-    chunk.embedding = await generateEmbedding(chunk.text);
-    await chunk.save();
+  try {
+    const chunks = await Chunk.find({ document: documentId });
+    for (const chunk of chunks) {
+      chunk.embedding = await generateEmbedding(chunk.text);
+      await chunk.save();
+    }
+    document.status = 'ready';
+    await document.save();
+  } catch (err) {
+    document.status = 'failed';
+    await document.save();
+    throw err;
   }
-
-  document.status = 'ready';
-  await document.save();
 
   return document;
 }

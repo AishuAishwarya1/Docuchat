@@ -65,4 +65,18 @@ const getChatById = async (req, res, next) => {
   }
 };
 
-module.exports = { sendMessage, getChats, getChatById };
+// @route DELETE /api/chat/:id
+const deleteChat = async (req, res, next) => {
+  try {
+    const chat = await Chat.findOne({ _id: req.params.id, user: req.user._id });
+    if (!chat) return res.status(404).json({ message: 'Chat not found' });
+
+    await chat.deleteOne();
+
+    res.status(200).json({ message: 'Chat deleted' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { sendMessage, getChats, getChatById, deleteChat };
